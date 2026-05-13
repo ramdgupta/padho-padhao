@@ -1,1 +1,1145 @@
-index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Padho & Seekho 📚</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sun:#FFB800;--mango:#FF6B35;--rose:#FF4D8B;
+  --sky:#00AEEF;--leaf:#2ECC71;--grape:#8B5CF6;
+  --cream:#FFF8EE;--card:#FFFFFF;--ink:#1A1A2E;
+  --muted:#7A7A9D;--border:#E8E8F0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Poppins',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle,#FFB80015 1px,transparent 1px);background-size:28px 28px;pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:12px 14px 40px}
+
+/* HEADER */
+.header{text-align:center;padding:20px 10px 12px}
+.logo{font-family:'Baloo 2',cursive;font-size:clamp(26px,6vw,44px);font-weight:800;background:linear-gradient(135deg,var(--mango),var(--rose),var(--grape));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}
+.tagline{font-size:13px;color:var(--muted);font-weight:500;margin-top:4px}
+
+/* NOTICE BANNER */
+.tts-warn{background:linear-gradient(135deg,#FFF3CD,#FFE8A0);border:2px solid var(--sun);border-radius:14px;padding:10px 14px;margin-bottom:12px;font-size:13px;font-weight:600;color:#7A5900;display:none;align-items:center;gap:8px}
+
+/* MODE SELECTOR */
+.mode-bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.mode-btn{flex:1;min-width:140px;padding:14px 10px;border-radius:18px;border:3px solid transparent;font-family:'Baloo 2',cursive;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;text-align:center;background:var(--card);color:var(--muted);box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.mode-btn.active{color:#fff;border-color:transparent;transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.15)}
+.mode-btn:nth-child(1).active{background:linear-gradient(135deg,var(--mango),var(--rose))}
+.mode-btn:nth-child(2).active{background:linear-gradient(135deg,var(--sky),var(--grape))}
+
+/* CARDS */
+.card{background:var(--card);border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.07);overflow:hidden;margin-bottom:14px}
+.card-head{padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:2px solid var(--border)}
+.card-title{font-family:'Baloo 2',cursive;font-size:16px;font-weight:700;display:flex;align-items:center;gap:7px}
+.card-body{padding:16px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:50px;border:none;font-family:'Baloo 2',cursive;font-size:14px;font-weight:700;cursor:pointer;transition:all .18s;white-space:nowrap}
+.btn:active{transform:scale(.95)}
+.btn-mango{background:linear-gradient(135deg,var(--mango),var(--rose));color:#fff;box-shadow:0 4px 14px #FF6B3530}
+.btn-mango:hover{transform:translateY(-1px);box-shadow:0 6px 20px #FF6B3550}
+.btn-sky{background:linear-gradient(135deg,var(--sky),var(--grape));color:#fff}
+.btn-sky:hover{transform:translateY(-1px)}
+.btn-leaf{background:linear-gradient(135deg,var(--leaf),#00C9A7);color:#fff}
+.btn-leaf:hover{transform:translateY(-1px)}
+.btn-grape{background:linear-gradient(135deg,var(--grape),var(--rose));color:#fff}
+.btn-sun{background:linear-gradient(135deg,var(--sun),var(--mango));color:#fff}
+.btn-red{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}
+.btn-ghost{background:#F5F5FA;color:var(--ink);border:2px solid var(--border)}
+.btn-ghost:hover{background:var(--border)}
+.btn-sm{padding:7px 13px;font-size:13px}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+
+/* UPLOAD */
+#uploadZone{border:3px dashed var(--mango);border-radius:20px;padding:26px 20px;text-align:center;cursor:pointer;transition:all .2s;background:linear-gradient(135deg,#FFF3E6,#FFF0F5);margin-bottom:14px}
+#uploadZone:hover,#uploadZone.drag{border-color:var(--rose);transform:scale(1.01)}
+.upload-icon{font-size:44px;display:block;animation:bounce 2.4s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.upload-title{font-family:'Baloo 2',cursive;font-size:18px;font-weight:800;color:var(--mango);margin:8px 0 4px}
+.upload-sub{font-size:13px;color:var(--muted)}
+#fileInput{display:none}
+
+/* DAILY READING SETUP */
+.class-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.class-btn{padding:10px 16px;border-radius:14px;border:2px solid var(--border);background:var(--card);font-family:'Baloo 2',cursive;font-size:14px;font-weight:700;cursor:pointer;transition:all .18s;color:var(--muted)}
+.class-btn.on{background:linear-gradient(135deg,var(--sky),var(--grape));color:#fff;border-color:transparent}
+.lang-grid{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.lang-btn{padding:8px 14px;border-radius:14px;border:2px solid var(--border);background:var(--card);font-family:'Baloo 2',cursive;font-size:13px;font-weight:700;cursor:pointer;transition:all .18s;color:var(--muted)}
+.lang-btn.on{background:linear-gradient(135deg,var(--leaf),var(--sky));color:#fff;border-color:transparent}
+.streak-box{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#FFF3CD,#FFE8A0);border-radius:14px;padding:10px 14px;font-family:'Baloo 2',cursive;font-size:14px;font-weight:700;color:#7A5900;margin-bottom:12px}
+
+/* TABS */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px;border-bottom:2px solid var(--border);background:#FAFAFA}
+.tab{padding:7px 14px;border-radius:50px;font-family:'Baloo 2',cursive;font-size:13px;font-weight:700;cursor:pointer;transition:all .18s;color:var(--muted)}
+.tab.active{background:var(--ink);color:#fff}
+.tab:not(.active):hover{background:var(--border);color:var(--ink)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* PDF */
+.pdf-controls{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.page-badge{font-family:'Baloo 2',cursive;font-size:13px;font-weight:700;background:#F5F5FA;padding:5px 12px;border-radius:20px}
+.pdf-scroll{overflow-y:auto;max-height:420px;background:#F0F0F5;border-radius:12px;padding:10px;margin-top:10px}
+#pdfCanvas{display:block;margin:0 auto;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.15);max-width:100%}
+
+/* READ CONTENT */
+.read-box{line-height:2.4;font-size:clamp(15px,3vw,18px);padding:4px 0}
+.word{display:inline-block;padding:2px 5px;border-radius:6px;cursor:pointer;transition:background .15s,transform .1s;margin:1px 2px}
+.word:hover{background:#FFE08A;transform:scale(1.1)}
+.word.speaking{background:var(--sun);color:var(--ink);transform:scale(1.15);box-shadow:0 2px 10px #FFB80055}
+.word.done{background:#D1FAE5;color:#065F46}
+
+/* STORY BOX */
+.story-box{background:linear-gradient(135deg,#F0FFF4,#E8F4FD);border-radius:16px;padding:18px;font-size:clamp(14px,2.5vw,17px);line-height:2;color:var(--ink);font-weight:500}
+.story-title{font-family:'Baloo 2',cursive;font-size:20px;font-weight:800;color:var(--grape);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+
+/* WORD POPUP */
+#wordPopup{position:fixed;z-index:9999;background:var(--ink);color:#fff;border-radius:16px;padding:13px 16px;max-width:230px;box-shadow:0 8px 32px rgba(0,0,0,.3);display:none}
+.pop-word{font-family:'Baloo 2',cursive;font-size:19px;font-weight:800;color:var(--sun)}
+.pop-meaning{font-size:12px;color:#CBD5E1;margin-top:5px;line-height:1.6}
+.pop-btns{display:flex;gap:6px;margin-top:8px}
+.pop-btn{padding:5px 11px;border-radius:20px;border:none;font-family:'Baloo 2',cursive;font-size:12px;font-weight:700;cursor:pointer}
+.pop-speak{background:var(--leaf);color:#fff}
+.pop-close{background:#374151;color:#fff}
+
+/* AI BOX */
+.ai-box{background:linear-gradient(135deg,#F5F0FF,#FFF0F8);border-radius:14px;padding:14px;min-height:90px;font-size:14px;line-height:1.9;color:var(--ink);font-weight:500}
+.ai-box p{margin-bottom:8px}
+.ai-box strong{color:var(--grape)}
+.placeholder{text-align:center;padding:18px;color:var(--muted)}
+.placeholder span{font-size:36px;display:block;margin-bottom:7px}
+.placeholder p{font-family:'Baloo 2',cursive;font-size:14px}
+
+/* SPINNER */
+.spin-box{display:flex;flex-direction:column;align-items:center;gap:10px;padding:22px}
+.spinner{width:40px;height:40px;border:5px solid #E8E0FF;border-top-color:var(--grape);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin-box p{font-family:'Baloo 2',cursive;font-size:14px;color:var(--grape);font-weight:700}
+
+/* WAVE */
+.audio-wave{display:none;align-items:flex-end;gap:3px;height:26px;margin-bottom:6px}
+.bar{width:4px;min-height:4px;background:linear-gradient(to top,var(--mango),var(--rose));border-radius:3px;transition:height .1s}
+
+/* QUIZ */
+.quiz-q{font-family:'Baloo 2',cursive;font-size:15px;font-weight:700;color:var(--ink);margin-bottom:10px;line-height:1.5}
+.quiz-opts{display:flex;flex-direction:column;gap:7px}
+.opt-btn{padding:10px 15px;border-radius:13px;border:2px solid var(--border);background:var(--card);font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;text-align:left}
+.opt-btn:hover{border-color:var(--sky);background:#F0F9FF}
+.opt-btn.correct{background:#D1FAE5;border-color:var(--leaf);color:#065F46}
+.opt-btn.wrong{background:#FEE2E2;border-color:#EF4444;color:#991B1B}
+.opt-btn:disabled{cursor:default}
+.q-fb{margin-top:10px;padding:10px 14px;border-radius:12px;font-family:'Baloo 2',cursive;font-size:13px;font-weight:700;line-height:1.5}
+.fb-ok{background:#D1FAE5;color:#065F46}
+.fb-no{background:#FEE2E2;color:#991B1B}
+.q-nav{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:10px}
+.q-counter{font-family:'Baloo 2',cursive;font-size:13px;font-weight:700;color:var(--muted)}
+.q-score{font-family:'Baloo 2',cursive;font-size:14px;font-weight:800;color:var(--grape)}
+
+/* MIC */
+.mic-btn{width:54px;height:54px;border-radius:50%;border:none;font-size:22px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.mic-idle{background:linear-gradient(135deg,var(--sky),var(--grape))}
+.mic-on{background:linear-gradient(135deg,var(--rose),var(--mango));animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.voice-box{background:#F5F5FA;border-radius:12px;padding:10px 14px;font-size:13px;min-height:36px;margin-top:8px;font-weight:500;font-style:italic;color:var(--ink)}
+
+/* RESULT */
+.result-card{text-align:center;padding:22px 16px}
+.result-emoji{font-size:58px;display:block;margin-bottom:10px}
+.result-title{font-family:'Baloo 2',cursive;font-size:21px;font-weight:800}
+.result-score{font-family:'Baloo 2',cursive;font-size:15px;color:var(--muted);margin-top:5px}
+
+/* VOICE CONTROLS */
+.voice-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;background:#FAFAFA;border-top:2px solid var(--border)}
+.voice-row label{font-family:'Baloo 2',cursive;font-size:12px;font-weight:700;color:var(--muted)}
+select{padding:5px 10px;border-radius:20px;border:2px solid var(--border);font-family:'Poppins',sans-serif;font-size:12px;background:#fff;cursor:pointer;outline:none;max-width:150px}
+.spd-btn{padding:4px 10px;border-radius:20px;border:2px solid var(--border);background:#fff;font-family:'Baloo 2',cursive;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;color:var(--muted)}
+.spd-btn.on{background:var(--grape);color:#fff;border-color:var(--grape)}
+
+/* PROGRESS */
+.prog-wrap{background:#E8E8F0;border-radius:20px;height:7px;overflow:hidden;margin:8px 0}
+.prog-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--mango),var(--rose));transition:width .4s}
+
+/* LANG TOGGLE */
+.lang-toggle{display:flex;gap:4px}
+.ltbtn{padding:4px 10px;border-radius:20px;border:2px solid var(--border);background:#fff;font-family:'Baloo 2',cursive;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .15s}
+.ltbtn.on{background:var(--sky);color:#fff;border-color:var(--sky)}
+
+/* DAILY LIMIT */
+.limit-card{background:linear-gradient(135deg,#FFF0F8,#F5F0FF);border-radius:16px;padding:20px;text-align:center}
+.limit-card span{font-size:52px;display:block;margin-bottom:10px}
+.limit-card h3{font-family:'Baloo 2',cursive;font-size:20px;color:var(--grape)}
+.limit-card p{font-size:13px;color:var(--muted);margin-top:6px}
+
+/* TOAST */
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:10px 20px;border-radius:50px;font-family:'Baloo 2',cursive;font-size:13px;font-weight:700;transition:transform .3s;z-index:10000;white-space:nowrap;pointer-events:none;max-width:90vw;text-align:center}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+/* RESPONSIVE */
+@media(min-width:680px){
+  .viewer-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .pdf-scroll{max-height:520px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">📚 Padho &amp; Seekho!</div>
+    <div class="tagline">Apna PDF padhlo ya aaj ki story padhlo — bilkul free! 🌟</div>
+  </div>
+
+  <!-- TTS WARNING -->
+  <div class="tts-warn" id="ttsWarn">
+    ⚠️ Audio ke liye <strong>Chrome browser</strong> use karo. Abhi sirf reading mode chalega.
+  </div>
+
+  <!-- MODE SELECTOR -->
+  <div class="mode-bar">
+    <button class="mode-btn active" id="modePdf" onclick="setMode('pdf')">📄 PDF Mode<br><small style="font-weight:500;font-size:11px">Apna document upload karo</small></button>
+    <button class="mode-btn" id="modeDaily" onclick="setMode('daily')">📖 Daily Reading<br><small style="font-weight:500;font-size:11px">Aaj ki story padhlo</small></button>
+  </div>
+
+  <!-- ══════════════════════════════════
+       PDF MODE
+  ══════════════════════════════════ -->
+  <div id="pdfMode">
+
+    <!-- UPLOAD -->
+    <div id="uploadZone" onclick="document.getElementById('fileInput').click()">
+      <span class="upload-icon">📄</span>
+      <div class="upload-title">Koi bhi PDF yahan drop karo!</div>
+      <div class="upload-sub">Textbook, worksheet, story — kuch bhi • Class 1–8</div>
+      <br>
+      <button class="btn btn-mango" onclick="event.stopPropagation();document.getElementById('fileInput').click()">📂 PDF Choose Karo</button>
+    </div>
+    <input type="file" id="fileInput" accept=".pdf" onchange="loadPDF(event)">
+
+    <!-- VIEWER -->
+    <div id="mainViewer" style="display:none">
+      <div class="viewer-grid">
+
+        <!-- PDF PANEL -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">📄 <span id="docName">Document</span></div>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('fileInput').click()">📂 Badlo</button>
+          </div>
+          <div class="card-body" style="padding:10px">
+            <div class="pdf-controls">
+              <button class="btn btn-ghost btn-sm" id="prevBtn" onclick="changePage(-1)" disabled>◀</button>
+              <span class="page-badge" id="pageInfo">1/1</span>
+              <button class="btn btn-ghost btn-sm" id="nextBtn" onclick="changePage(1)" disabled>▶</button>
+            </div>
+            <div class="pdf-scroll"><canvas id="pdfCanvas"></canvas></div>
+          </div>
+        </div>
+
+        <!-- TABS PANEL -->
+        <div class="card">
+          <div class="tabs">
+            <div class="tab active" onclick="switchTab('read','pdf')">🔊 Padho</div>
+            <div class="tab" onclick="switchTab('understand','pdf')">🤖 Samjho</div>
+            <div class="tab" onclick="switchTab('quiz','pdf')">❓ Quiz</div>
+          </div>
+
+          <!-- READ TAB -->
+          <div class="tab-panel active" id="pdf-tab-read">
+            <div class="card-body">
+              <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
+                <button class="btn btn-leaf btn-sm" id="readBtn" onclick="readAll()">▶ Suno</button>
+                <button class="btn btn-red btn-sm" id="stopBtn" onclick="stopAll()" style="display:none">⏹ Ruko</button>
+                <button class="btn btn-sky btn-sm" onclick="resetRead()">🔄</button>
+                <div class="lang-toggle">
+                  <button class="ltbtn on" id="lEn" onclick="setLang('en')">EN</button>
+                  <button class="ltbtn" id="lHi" onclick="setLang('hi')">HI</button>
+                </div>
+              </div>
+              <div class="audio-wave" id="audioWave">
+                <div class="bar"></div><div class="bar" style="height:10px"></div>
+                <div class="bar" style="height:18px"></div><div class="bar" style="height:12px"></div>
+                <div class="bar" style="height:24px"></div><div class="bar" style="height:16px"></div>
+                <div class="bar" style="height:20px"></div><div class="bar" style="height:8px"></div>
+                <div class="bar" style="height:14px"></div><div class="bar"></div>
+              </div>
+              <div class="read-box" id="readContainer">
+                <div class="placeholder"><span>📄</span><p>PDF load hone ke baad words yahan aayenge</p><p style="font-size:12px;margin-top:4px;color:#BBB">Kisi bhi word pe tap karo — pronunciation!</p></div>
+              </div>
+            </div>
+            <div class="voice-row">
+              <label>🗣️</label>
+              <select id="voiceSel" onchange="updateVoice()"><option>Loading...</option></select>
+              <label>⚡</label>
+              <button class="spd-btn" onclick="setSpd(0.6,this)">🐢</button>
+              <button class="spd-btn on" onclick="setSpd(0.85,this)">OK</button>
+              <button class="spd-btn" onclick="setSpd(1.2,this)">🐇</button>
+            </div>
+          </div>
+
+          <!-- UNDERSTAND TAB -->
+          <div class="tab-panel" id="pdf-tab-understand">
+            <div class="card-body">
+              <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px">
+                <button class="btn btn-grape btn-sm" onclick="aiExplain('simple')">🤖 Samjhao</button>
+                <button class="btn btn-sun btn-sm" onclick="aiExplain('words')">📝 Hard Words</button>
+                <button class="btn btn-sky btn-sm" onclick="aiExplain('summary')">📋 Summary</button>
+                <button class="btn btn-leaf btn-sm" id="speakExpBtn" onclick="speakExp()" style="display:none">🔊 Suno</button>
+              </div>
+              <div id="aiBox" class="ai-box">
+                <div class="placeholder"><span>🤖</span><p>Button dabao — AI Hinglish mein samjhayega!</p></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- QUIZ TAB -->
+          <div class="tab-panel" id="pdf-tab-quiz">
+            <div class="card-body">
+              <div id="pdfQuizStart">
+                <div class="placeholder"><span>❓</span><p>AI is page se questions banayega!</p></div>
+                <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">
+                  <button class="btn btn-mango btn-sm" onclick="startQuiz('mcq','pdf')">📝 MCQ</button>
+                  <button class="btn btn-sky btn-sm" onclick="startQuiz('tf','pdf')">✅ True/False</button>
+                  <button class="btn btn-leaf btn-sm" onclick="startQuiz('fill','pdf')">✏️ Fill Blank</button>
+                  <button class="btn btn-grape btn-sm" onclick="startQuiz('voice','pdf')">🎤 Voice</button>
+                </div>
+              </div>
+              <div id="pdfQuizArea" style="display:none"></div>
+            </div>
+          </div>
+
+        </div><!-- end tabs -->
+      </div><!-- end grid -->
+    </div><!-- end viewer -->
+
+  </div><!-- end PDF MODE -->
+
+  <!-- ══════════════════════════════════
+       DAILY READING MODE
+  ══════════════════════════════════ -->
+  <div id="dailyMode" style="display:none">
+
+    <!-- SETUP CARD -->
+    <div class="card" id="dailySetup">
+      <div class="card-head">
+        <div class="card-title">📖 Aaj Ki Story</div>
+        <div class="streak-box" style="padding:6px 12px;margin:0">🔥 <span id="streakCount">0</span> din</div>
+      </div>
+      <div class="card-body">
+
+        <!-- CLASS SELECT -->
+        <p style="font-family:'Baloo 2',cursive;font-size:14px;font-weight:700;color:var(--muted);margin-bottom:8px">📚 Apni Class chuno:</p>
+        <div class="class-grid">
+          <button class="class-btn" onclick="setClass(1,this)">Class 1</button>
+          <button class="class-btn" onclick="setClass(2,this)">Class 2</button>
+          <button class="class-btn" onclick="setClass(3,this)">Class 3</button>
+          <button class="class-btn" onclick="setClass(4,this)">Class 4</button>
+          <button class="class-btn" onclick="setClass(5,this)">Class 5</button>
+          <button class="class-btn" onclick="setClass(6,this)">Class 6</button>
+          <button class="class-btn" onclick="setClass(7,this)">Class 7</button>
+          <button class="class-btn" onclick="setClass(8,this)">Class 8</button>
+        </div>
+
+        <!-- LANGUAGE SELECT -->
+        <p style="font-family:'Baloo 2',cursive;font-size:14px;font-weight:700;color:var(--muted);margin-bottom:8px">🌐 Bhasha chuno:</p>
+        <div class="lang-grid">
+          <button class="lang-btn on" id="dl-en" onclick="setDailyLang('english',this)">🇬🇧 English</button>
+          <button class="lang-btn" id="dl-hi" onclick="setDailyLang('hindi',this)">🇮🇳 Hindi</button>
+          <button class="lang-btn" id="dl-both" onclick="setDailyLang('hinglish',this)">🤝 Hinglish</button>
+        </div>
+
+        <!-- TOPIC SELECT -->
+        <p style="font-family:'Baloo 2',cursive;font-size:14px;font-weight:700;color:var(--muted);margin-bottom:8px">🎯 Topic (optional):</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+          <button class="class-btn" onclick="setTopic('animals',this)">🐾 Animals</button>
+          <button class="class-btn" onclick="setTopic('space',this)">🚀 Space</button>
+          <button class="class-btn" onclick="setTopic('festival',this)">🪔 Festival</button>
+          <button class="class-btn" onclick="setTopic('friendship',this)">🤝 Friendship</button>
+          <button class="class-btn" onclick="setTopic('nature',this)">🌿 Nature</button>
+          <button class="class-btn" onclick="setTopic('sports',this)">🏏 Sports</button>
+        </div>
+
+        <button class="btn btn-mango" id="getStoryBtn" onclick="getDailyStory()" style="width:100%;justify-content:center;font-size:16px;padding:14px">
+          📖 Aaj Ki Story Padhna Chahta Hoon!
+        </button>
+        <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:8px">Har roz ek nayi story milegi 🌟</p>
+      </div>
+    </div>
+
+    <!-- DAILY LIMIT REACHED -->
+    <div class="card" id="dailyLimitCard" style="display:none">
+      <div class="card-body">
+        <div class="limit-card">
+          <span>⏰</span>
+          <h3>Aaj Ki Story Pad Li!</h3>
+          <p>Kal aao nayi story ke liye.<br>Aaj ka quiz aur review kar sakte ho!</p>
+          <div style="display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap">
+            <button class="btn btn-grape btn-sm" onclick="showDailyQuiz()">❓ Quiz Do</button>
+            <button class="btn btn-ghost btn-sm" onclick="showTodayStory()">📖 Dobara Padho</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STORY VIEWER -->
+    <div id="storyViewer" style="display:none">
+      <div class="viewer-grid">
+
+        <!-- STORY PANEL -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title" id="storyMeta">📖 Story</div>
+            <button class="btn btn-leaf btn-sm" id="storyReadBtn" onclick="readStory()">▶ Suno</button>
+          </div>
+          <div class="card-body">
+            <div class="audio-wave" id="storyWave">
+              <div class="bar"></div><div class="bar" style="height:10px"></div>
+              <div class="bar" style="height:18px"></div><div class="bar" style="height:12px"></div>
+              <div class="bar" style="height:24px"></div><div class="bar" style="height:16px"></div>
+              <div class="bar" style="height:20px"></div><div class="bar" style="height:8px"></div>
+              <div class="bar" style="height:14px"></div><div class="bar"></div>
+            </div>
+            <div class="story-box" id="storyContent">
+              <div class="spin-box"><div class="spinner"></div><p>Story aa rahi hai... 📖</p></div>
+            </div>
+          </div>
+          <div class="voice-row">
+            <label>🗣️</label>
+            <select id="voiceSel2" onchange="updateVoice2()"><option>Loading...</option></select>
+            <label>⚡</label>
+            <button class="spd-btn" onclick="setSpd2(0.6,this)">🐢</button>
+            <button class="spd-btn on" onclick="setSpd2(0.85,this)">OK</button>
+            <button class="spd-btn" onclick="setSpd2(1.2,this)">🐇</button>
+          </div>
+        </div>
+
+        <!-- STORY QUIZ PANEL -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">❓ Story Quiz</div>
+          </div>
+          <div class="card-body">
+            <div id="storyQuizStart">
+              <div class="placeholder"><span>🎯</span><p>Story padho phir quiz do!</p></div>
+              <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">
+                <button class="btn btn-mango btn-sm" onclick="startQuiz('mcq','story')">📝 MCQ</button>
+                <button class="btn btn-sky btn-sm" onclick="startQuiz('tf','story')">✅ True/False</button>
+                <button class="btn btn-grape btn-sm" onclick="startQuiz('voice','story')">🎤 Voice</button>
+              </div>
+            </div>
+            <div id="storyQuizArea" style="display:none"></div>
+          </div>
+        </div>
+
+      </div><!-- end viewer-grid -->
+    </div><!-- end storyViewer -->
+
+  </div><!-- end DAILY MODE -->
+
+</div><!-- end app -->
+
+<!-- WORD POPUP -->
+<div id="wordPopup">
+  <div class="pop-word" id="popWord"></div>
+  <div class="pop-meaning" id="popMeaning"></div>
+  <div class="pop-btns">
+    <button class="pop-btn pop-speak" onclick="speakWord(currentWord)">🔊</button>
+    <button class="pop-btn pop-close" onclick="closePopup()">✕</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════
+   SAFE TTS
+══════════════════════════════════════ */
+const TTS = (() => {
+  const ok = typeof window!=='undefined' && 'speechSynthesis' in window;
+  return {
+    ok,
+    speak(text, rate, voice, onEnd) {
+      if (!ok) { if(onEnd) onEnd(); return; }
+      try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = rate||0.85; u.pitch = 1.05;
+        if (voice) u.voice = voice;
+        if (onEnd) { u.onend=onEnd; u.onerror=onEnd; }
+        window.speechSynthesis.speak(u);
+      } catch(e) { if(onEnd) onEnd(); }
+    },
+    cancel() { if(ok) try{ window.speechSynthesis.cancel(); }catch(e){} },
+    voices() { if(!ok) return []; try{ return window.speechSynthesis.getVoices(); }catch(e){ return []; } }
+  };
+})();
+const SpeechRec = window.SpeechRecognition||window.webkitSpeechRecognition||null;
+
+/* ══ STATE ══ */
+let pdfDoc=null, curPage=1, totalPages=0;
+let pageTexts={}, pageWords={};
+let spRate=0.85, selVoice=null, spRate2=0.85, selVoice2=null;
+let isSpeaking=false, wIdx=0, waveInt=null, waveInt2=null;
+let currentWord='', meaningCache={};
+let curExp='', curLang='en';
+let quizData=[], qIdx=0, qScore=0, qType='', qCtx='';
+let recog=null;
+
+// Daily reading state
+let selectedClass=1, dailyLang='english', dailyTopic='';
+let todayStory='', todayStoryTitle='', storyWords=[];
+let storyIsSpeaking=false, storyWIdx=0;
+
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+/* ══ INIT ══ */
+window.addEventListener('load', () => {
+  if (!TTS.ok) document.getElementById('ttsWarn').style.display='flex';
+  loadVoices();
+  if (TTS.ok) try{ window.speechSynthesis.onvoiceschanged=loadVoices; }catch(e){}
+  updateStreak();
+
+  // drag drop
+  const z=document.getElementById('uploadZone');
+  z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('drag');});
+  z.addEventListener('dragleave',()=>z.classList.remove('drag'));
+  z.addEventListener('drop',e=>{
+    e.preventDefault();z.classList.remove('drag');
+    const f=e.dataTransfer.files[0];
+    if(f&&f.type==='application/pdf') loadPDF({target:{files:[f]}});
+    else toast('⚠️ Sirf PDF files!');
+  });
+  document.addEventListener('click',e=>{
+    const p=document.getElementById('wordPopup');
+    if(p&&!p.contains(e.target)) closePopup();
+  });
+});
+
+/* ══ MODE SWITCH ══ */
+function setMode(mode) {
+  document.getElementById('pdfMode').style.display = mode==='pdf'?'block':'none';
+  document.getElementById('dailyMode').style.display = mode==='daily'?'block':'none';
+  document.getElementById('modePdf').classList.toggle('active', mode==='pdf');
+  document.getElementById('modeDaily').classList.toggle('active', mode==='daily');
+}
+
+/* ══ PDF LOAD ══ */
+async function loadPDF(event) {
+  const file=event.target.files[0]; if(!file) return;
+  toast('⏳ PDF load ho rahi hai...');
+  pageTexts={}; pageWords={};
+  try {
+    const buf=await file.arrayBuffer();
+    pdfDoc=await pdfjsLib.getDocument({data:buf}).promise;
+    totalPages=pdfDoc.numPages; curPage=1;
+    const n=file.name;
+    document.getElementById('docName').textContent=n.length>20?n.slice(0,20)+'...':n;
+    document.getElementById('mainViewer').style.display='block';
+    document.getElementById('mainViewer').scrollIntoView({behavior:'smooth',block:'start'});
+    await renderPage(curPage);
+    updateNav();
+    toast('✅ Ready! Words pe tap karo ya Suno dabao');
+  } catch(e){ toast('❌ PDF load error: '+e.message); }
+}
+
+async function renderPage(num) {
+  try {
+    const page=await pdfDoc.getPage(num);
+    const canvas=document.getElementById('pdfCanvas');
+    const w=Math.max(canvas.parentElement.clientWidth-24,200);
+    const vp=page.getViewport({scale:1});
+    const sc=Math.min(w/vp.width,2.2);
+    const sv=page.getViewport({scale:sc});
+    canvas.width=sv.width; canvas.height=sv.height;
+    canvas.style.maxWidth='100%';
+    await page.render({canvasContext:canvas.getContext('2d'),viewport:sv}).promise;
+    if(!pageTexts[num]){
+      const tc=await page.getTextContent();
+      pageTexts[num]=tc.items.map(i=>i.str).join(' ').replace(/\s+/g,' ').trim();
+    }
+    buildWords(num);
+    document.getElementById('pageInfo').textContent=`${num}/${totalPages}`;
+  } catch(e){ toast('❌ Page error'); }
+}
+
+function buildWords(num) {
+  const words=(pageTexts[num]||'').split(/\s+/).filter(w=>w.length>0);
+  pageWords[num]=words;
+  const c=document.getElementById('readContainer');
+  if(!words.length){
+    c.innerHTML='<div class="placeholder"><span>📭</span><p>Is page mein text nahi mila</p></div>';
+    return;
+  }
+  c.innerHTML=words.map((w,i)=>{
+    const s=w.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const j=w.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<span class="word" id="w${i}" onclick="tapWord(this,'${j}',event)">${s}</span>`;
+  }).join(' ');
+}
+
+function changePage(d){
+  const np=curPage+d;
+  if(np<1||np>totalPages) return;
+  curPage=np; stopAll(); renderPage(curPage); updateNav();
+  document.getElementById('aiBox').innerHTML='<div class="placeholder"><span>🤖</span><p>Button dabao!</p></div>';
+  document.getElementById('speakExpBtn').style.display='none';
+  resetQuiz('pdf');
+}
+function updateNav(){
+  document.getElementById('prevBtn').disabled=curPage<=1;
+  document.getElementById('nextBtn').disabled=curPage>=totalPages;
+}
+
+/* ══ TABS ══ */
+function switchTab(name, ctx) {
+  const prefix = ctx+'-tab-';
+  document.querySelectorAll(`[id^="${prefix}"]`).forEach(p=>p.classList.remove('active'));
+  document.getElementById(prefix+name).classList.add('active');
+  // tab buttons — find parent .tabs
+  const tabsEl = document.getElementById(prefix+name).closest('.card').querySelector('.tabs');
+  if(tabsEl){
+    const tabs=['read','understand','quiz'];
+    tabsEl.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',tabs[i]===name));
+  }
+}
+
+/* ══ WORD TAP ══ */
+async function tapWord(el, word, event) {
+  event.stopPropagation();
+  currentWord=word;
+  speakWord(word);
+  const popup=document.getElementById('wordPopup');
+  document.getElementById('popWord').textContent=word;
+  document.getElementById('popMeaning').textContent='⏳ Loading...';
+  popup.style.display='block';
+  const rect=el.getBoundingClientRect();
+  let top=rect.bottom+window.scrollY+8;
+  let left=Math.min(rect.left+window.scrollX, window.innerWidth-240);
+  left=Math.max(left,8);
+  if(top+160>window.scrollY+window.innerHeight) top=rect.top+window.scrollY-170;
+  popup.style.top=top+'px'; popup.style.left=left+'px';
+  document.getElementById('popMeaning').innerHTML=await getMeaning(word);
+}
+
+async function getMeaning(word) {
+  if(meaningCache[word]) return meaningCache[word];
+  try {
+    const r=await callProxy(
+      `Word: "${word}"\nGive exactly 3 lines:\nPronunciation: [phonetic]\nHindi: [simple meaning]\nExample: [simple sentence]\nNo extra text.`, 100);
+    const lines=r.trim().split('\n').filter(l=>l.trim()).map(l=>`<div>${l}</div>`).join('');
+    meaningCache[word]=lines;
+    return lines;
+  } catch(e){ return `<em>${word}</em>`; }
+}
+
+function closePopup(){ const p=document.getElementById('wordPopup'); if(p) p.style.display='none'; }
+
+/* ══ PDF READ ALL ══ */
+function readAll(){
+  if(!TTS.ok){ toast('⚠️ Chrome mein kholo audio ke liye'); return; }
+  const words=pageWords[curPage];
+  if(!words||!words.length){ toast('⚠️ Text nahi mila'); return; }
+  stopAll(); wIdx=0; isSpeaking=true;
+  document.getElementById('stopBtn').style.display='inline-flex';
+  document.getElementById('readBtn').style.display='none';
+  startWave('audioWave','waveInt'); speakNext(words);
+}
+
+function speakNext(words){
+  if(!isSpeaking||wIdx>=words.length){ endRead(); return; }
+  document.querySelectorAll('.word.speaking').forEach(w=>{w.classList.remove('speaking');w.classList.add('done');});
+  const el=document.getElementById('w'+wIdx);
+  if(el){ el.classList.add('speaking'); el.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+  TTS.speak(words[wIdx], spRate, selVoice, ()=>{ if(isSpeaking){wIdx++; speakNext(words);} });
+}
+
+function endRead(){
+  isSpeaking=false; stopWave('audioWave','waveInt');
+  document.getElementById('stopBtn').style.display='none';
+  document.getElementById('readBtn').style.display='inline-flex';
+  document.querySelectorAll('.word.speaking').forEach(w=>{w.classList.remove('speaking');w.classList.add('done');});
+}
+
+function stopAll(){
+  isSpeaking=false; storyIsSpeaking=false; TTS.cancel();
+  stopWave('audioWave','waveInt'); stopWave('storyWave','waveInt2');
+  const sb=document.getElementById('stopBtn'); if(sb){sb.style.display='none';}
+  const rb=document.getElementById('readBtn'); if(rb){rb.style.display='inline-flex';}
+  const srb=document.getElementById('storyReadBtn'); if(srb) srb.textContent='▶ Suno';
+  document.querySelectorAll('.word.speaking').forEach(w=>w.classList.remove('speaking'));
+}
+
+function resetRead(){
+  stopAll(); wIdx=0;
+  document.querySelectorAll('.word').forEach(w=>w.classList.remove('speaking','done'));
+}
+
+function speakWord(w){
+  if(!TTS.ok) return;
+  TTS.cancel();
+  TTS.speak(w, 0.75, selVoice);
+}
+
+/* ══ STORY READ ══ */
+function readStory(){
+  if(!TTS.ok){ toast('⚠️ Chrome mein kholo'); return; }
+  if(storyIsSpeaking){ stopAll(); return; }
+  if(!todayStory){ toast('⚠️ Pehle story load karo'); return; }
+  stopAll();
+  storyIsSpeaking=true;
+  storyWIdx=0;
+  document.getElementById('storyReadBtn').textContent='⏹ Ruko';
+  startWave('storyWave','waveInt2');
+  speakStoryNext();
+}
+
+function speakStoryNext(){
+  if(!storyIsSpeaking||storyWIdx>=storyWords.length){
+    storyIsSpeaking=false;
+    stopWave('storyWave','waveInt2');
+    const srb=document.getElementById('storyReadBtn');
+    if(srb) srb.textContent='▶ Suno';
+    return;
+  }
+  // highlight current word in story
+  document.querySelectorAll('#storyContent .word.speaking').forEach(w=>{w.classList.remove('speaking');w.classList.add('done');});
+  const el=document.getElementById('sw'+storyWIdx);
+  if(el){ el.classList.add('speaking'); el.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+  TTS.speak(storyWords[storyWIdx], spRate2, selVoice2, ()=>{
+    if(storyIsSpeaking){ storyWIdx++; speakStoryNext(); }
+  });
+}
+
+/* ══ WAVE HELPERS ══ */
+function startWave(id, intVar){
+  const wv=document.getElementById(id); if(!wv) return;
+  wv.style.display='flex';
+  window[intVar]=setInterval(()=>{
+    wv.querySelectorAll('.bar').forEach(b=>{ b.style.height=(Math.random()*22+4)+'px'; });
+  },110);
+}
+function stopWave(id, intVar){
+  clearInterval(window[intVar]);
+  const wv=document.getElementById(id); if(!wv) return;
+  wv.style.display='none';
+  wv.querySelectorAll('.bar').forEach(b=>b.style.height='4px');
+}
+
+/* ══ VOICES ══ */
+function loadVoices(){
+  const all=TTS.voices();
+  [['voiceSel','selVoice'],['voiceSel2','selVoice2']].forEach(([id,varName])=>{
+    const sel=document.getElementById(id); if(!sel) return;
+    sel.innerHTML='';
+    if(!all.length){ sel.innerHTML='<option>Default</option>'; return; }
+    const pref=all.filter(v=>v.lang.startsWith('hi')||v.lang.includes('IN'));
+    const eng=all.filter(v=>v.lang.startsWith('en'));
+    const list=[...pref,...eng];
+    (list.length?list:all).forEach((v,i)=>{
+      const o=document.createElement('option');
+      o.value=i; o.textContent=`${v.name} (${v.lang})`;
+      if(i===0){ window[varName]=v; o.selected=true; }
+      sel.appendChild(o);
+    });
+  });
+}
+function updateVoice(){
+  const all=TTS.voices();
+  const pref=all.filter(v=>v.lang.startsWith('hi')||v.lang.includes('IN'));
+  const list=[...pref,...all.filter(v=>v.lang.startsWith('en'))];
+  const idx=parseInt(document.getElementById('voiceSel').value)||0;
+  selVoice=(list.length?list:all)[idx]||all[0];
+}
+function updateVoice2(){
+  const all=TTS.voices();
+  const pref=all.filter(v=>v.lang.startsWith('hi')||v.lang.includes('IN'));
+  const list=[...pref,...all.filter(v=>v.lang.startsWith('en'))];
+  const idx=parseInt(document.getElementById('voiceSel2').value)||0;
+  selVoice2=(list.length?list:all)[idx]||all[0];
+}
+function setSpd(s,btn){ spRate=s; document.querySelectorAll('#pdf-tab-read .spd-btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); }
+function setSpd2(s,btn){ spRate2=s; document.querySelectorAll('#storyViewer .spd-btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); }
+function setLang(l){
+  curLang=l;
+  document.getElementById('lEn').classList.toggle('on',l==='en');
+  document.getElementById('lHi').classList.toggle('on',l==='hi');
+}
+
+/* ══ AI EXPLAIN ══ */
+async function aiExplain(mode){
+  const text=pageTexts[curPage];
+  if(!text){ toast('⚠️ Text nahi mila'); return; }
+  showSpin('aiBox','AI soch raha hai... 🤔');
+  let prompt;
+  if(mode==='simple'){
+    prompt=`You are a friendly Indian teacher explaining a document to a child aged 6-12.
+Text: """${text.slice(0,1500)}"""
+Explain in HINGLISH (Hindi+English mix, English script). Simple words, emojis, point-by-point. Max 180 words. Encouraging tone.`;
+  } else if(mode==='words'){
+    prompt=`From this text: """${text.slice(0,1500)}"""
+Pick 6 important English words. For each:
+📌 Word: [word]
+🔤 Phonetic: [simple]
+🇮🇳 Hindi: [simple meaning]
+📝 Example: [1 easy sentence]
+Short and clear.`;
+  } else {
+    prompt=`Summarize this page in HINGLISH for a child (6-12 years):
+"""${text.slice(0,1500)}"""
+3-4 key points, each starting with emoji. Simple words. Max 120 words.`;
+  }
+  try {
+    const r=await callProxy(prompt,600);
+    curExp=r; showAiResult(r,'aiBox');
+    document.getElementById('speakExpBtn').style.display='inline-flex';
+  } catch(e){ showAiResult('❌ Error: '+e.message,'aiBox'); }
+}
+
+function speakExp(){
+  if(!TTS.ok){ toast('⚠️ Chrome mein kholo'); return; }
+  if(!curExp) return; stopAll();
+  const clean=curExp.replace(/[^\w\s.,!?'\u0900-\u097F-]/g,' ').replace(/\s+/g,' ');
+  startWave('audioWave','waveInt');
+  TTS.speak(clean, spRate, selVoice, ()=>stopWave('audioWave','waveInt'));
+}
+
+/* ══ DAILY STORY ══ */
+function setClass(n,btn){
+  selectedClass=n;
+  document.querySelectorAll('.class-grid .class-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+function setDailyLang(l,btn){
+  dailyLang=l;
+  document.querySelectorAll('.lang-grid .lang-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+function setTopic(t,btn){
+  dailyTopic = dailyTopic===t ? '' : t;
+  document.querySelectorAll('[onclick^="setTopic"]').forEach(b=>b.classList.remove('on'));
+  if(dailyTopic) btn.classList.add('on');
+}
+
+async function getDailyStory(){
+  // Check daily limit
+  const today=new Date().toDateString();
+  const lastStory=localStorage.getItem('ps_story_date');
+  const savedStory=localStorage.getItem('ps_today_story');
+
+  if(lastStory===today && savedStory){
+    // Already read today
+    const saved=JSON.parse(savedStory);
+    todayStory=saved.content;
+    todayStoryTitle=saved.title;
+    selectedClass=saved.cls||selectedClass;
+    document.getElementById('dailySetup').style.display='none';
+    document.getElementById('dailyLimitCard').style.display='block';
+    document.getElementById('storyViewer').style.display='block';
+    showStory(saved.title, saved.content);
+    return;
+  }
+
+  // Generate new story
+  const btn=document.getElementById('getStoryBtn');
+  btn.disabled=true;
+  btn.textContent='⏳ Story aa rahi hai...';
+
+  const topics={animals:'animals/birds/pets',space:'space/planets/stars',festival:'Indian festivals/Diwali/Holi',friendship:'friendship/helping others',nature:'nature/trees/rivers',sports:'cricket/kabaddi/games'};
+  const topicHint = dailyTopic ? `Topic: ${topics[dailyTopic]||dailyTopic}. ` : '';
+
+  const langInstr = dailyLang==='hindi'
+    ? 'Write entirely in simple Hindi (Devanagari script).'
+    : dailyLang==='hinglish'
+    ? 'Write in Hinglish (Hindi+English mix, English script).'
+    : 'Write in simple English.';
+
+  const wordCounts={1:80,2:100,3:130,4:160,5:200,6:250,7:300,8:350};
+  const words=wordCounts[selectedClass]||150;
+
+  const prompt=`Write a short educational story for Class ${selectedClass} Indian school student.
+${topicHint}${langInstr}
+Requirements:
+- Around ${words} words
+- Age-appropriate vocabulary for Class ${selectedClass}
+- Indian context and characters
+- Clear moral or learning point
+- Engaging and fun
+- End with "Moral: [one line]"
+
+Format:
+TITLE: [story title]
+---
+[story content]`;
+
+  try {
+    const r=await callProxy(prompt,800);
+    const titleMatch=r.match(/TITLE:\s*(.+)/);
+    const title=titleMatch?titleMatch[1].trim():`Class ${selectedClass} Story`;
+    const content=r.replace(/TITLE:\s*.+\n?---\n?/,'').trim();
+
+    todayStory=content;
+    todayStoryTitle=title;
+
+    // Save to localStorage
+    localStorage.setItem('ps_story_date',today);
+    localStorage.setItem('ps_today_story',JSON.stringify({
+      title,content,cls:selectedClass,lang:dailyLang
+    }));
+    updateStreak();
+
+    document.getElementById('dailySetup').style.display='none';
+    document.getElementById('storyViewer').style.display='block';
+    showStory(title,content);
+    toast('📖 Story ready! Padho aur enjoy karo!');
+  } catch(e){
+    toast('❌ Story load error: '+e.message);
+  } finally {
+    btn.disabled=false;
+    btn.textContent='📖 Aaj Ki Story Padhna Chahta Hoon!';
+  }
+}
+
+function showStory(title,content){
+  document.getElementById('storyMeta').innerHTML=`📖 ${title}`;
+  const words=content.split(/\s+/).filter(w=>w.length>0);
+  storyWords=words;
+  storyWIdx=0;
+  const html=words.map((w,i)=>{
+    const s=w.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const j=w.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<span class="word" id="sw${i}" onclick="tapWord(this,'${j}',event)">${s}</span>`;
+  }).join(' ');
+  document.getElementById('storyContent').innerHTML=`<div class="story-title">📖 ${title}</div><div class="read-box">${html}</div>`;
+}
+
+function showTodayStory(){
+  document.getElementById('dailyLimitCard').style.display='none';
+  document.getElementById('storyViewer').style.display='block';
+}
+function showDailyQuiz(){
+  document.getElementById('dailyLimitCard').style.display='none';
+  document.getElementById('storyViewer').style.display='block';
+  startQuiz('mcq','story');
+}
+
+function updateStreak(){
+  try {
+    const today=new Date().toDateString();
+    let streak=parseInt(localStorage.getItem('ps_streak')||'0');
+    const lastDate=localStorage.getItem('ps_last_date');
+    const yesterday=new Date(Date.now()-86400000).toDateString();
+    if(lastDate===yesterday){ streak++; }
+    else if(lastDate!==today){ streak=1; }
+    localStorage.setItem('ps_streak',streak);
+    localStorage.setItem('ps_last_date',today);
+    const el=document.getElementById('streakCount');
+    if(el) el.textContent=streak;
+  } catch(e){}
+}
+
+/* ══ QUIZ (works for both PDF and Story) ══ */
+async function startQuiz(type, ctx){
+  qCtx=ctx;
+  const text = ctx==='story' ? todayStory : pageTexts[curPage];
+  if(!text){ toast('⚠️ Pehle content load karo!'); return; }
+
+  qType=type;
+  const areaId = ctx==='story' ? 'storyQuizArea' : 'pdfQuizArea';
+  const startId = ctx==='story' ? 'storyQuizStart' : 'pdfQuizStart';
+
+  document.getElementById(areaId).style.display='block';
+  document.getElementById(startId).style.display='none';
+  showSpin(areaId,'Questions ban rahe hain... ✍️');
+
+  let prompt;
+  if(type==='mcq'||type==='voice'){
+    prompt=`Create 5 MCQ questions for a child (Class ${selectedClass||3}) from this text:
+"""${text.slice(0,1200)}"""
+RESPOND ONLY with JSON array (no markdown, no code fences):
+[{"q":"question","opts":["A","B","C","D"],"ans":0,"explain":"short Hinglish explanation"}]
+ans = 0-indexed correct option.`;
+  } else if(type==='tf'){
+    prompt=`Create 5 True/False questions for a child from this text:
+"""${text.slice(0,1200)}"""
+RESPOND ONLY with JSON array (no markdown):
+[{"q":"statement","opts":["Sahi ✅","Galat ❌"],"ans":0,"explain":"short Hinglish explanation"}]`;
+  } else {
+    prompt=`Create 5 fill-in-the-blank questions for a child from this text:
+"""${text.slice(0,1200)}"""
+RESPOND ONLY with JSON array (no markdown):
+[{"q":"sentence with _______","opts":["correct","wrong1","wrong2","wrong3"],"ans":0,"explain":"short Hinglish explanation"}]`;
+  }
+
+  try {
+    const r=await callProxy(prompt,1000);
+    const m=r.match(/\[[\s\S]*\]/);
+    if(!m) throw new Error('JSON nahi mila');
+    quizData=JSON.parse(m[0]);
+    if(!quizData.length) throw new Error('Empty');
+    qIdx=0; qScore=0;
+    renderQ(areaId);
+  } catch(e){
+    document.getElementById(areaId).innerHTML=
+      `<div class="placeholder"><span>❌</span><p>Quiz error: ${e.message}</p></div>
+       <button class="btn btn-mango btn-sm" style="margin-top:10px" onclick="resetQuiz('${ctx}')">↩ Wapas</button>`;
+  }
+}
+
+function renderQ(areaId){
+  if(qIdx>=quizData.length){ showResult(areaId); return; }
+  const q=quizData[qIdx];
+  const pct=Math.round(qIdx/quizData.length*100);
+  const micSec=qType==='voice'?`
+    <div style="margin-top:10px">
+      <p style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px">🎤 Awaz mein jawab do:</p>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="mic-btn mic-idle" id="micBtn" onclick="startVoice()">🎤</button>
+        <div class="voice-box" id="voiceBox">Mic dabao aur option bolo...</div>
+      </div>
+    </div>`:'';
+
+  document.getElementById(areaId).innerHTML=`
+    <div>
+      <div class="prog-wrap"><div class="prog-fill" style="width:${pct}%"></div></div>
+      <div class="q-nav" style="margin-bottom:8px">
+        <span class="q-counter">Q ${qIdx+1}/${quizData.length}</span>
+        <span class="q-score">⭐ ${qScore}/${qIdx}</span>
+      </div>
+      <div class="quiz-q">${q.q}</div>
+      <div class="quiz-opts">
+        ${q.opts.map((o,i)=>`<button class="opt-btn" id="o${i}" onclick="pick(${i},'${areaId}')">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
+      </div>
+      ${micSec}
+      <div id="qFb"></div>
+      <div class="q-nav" style="margin-top:10px">
+        <button class="btn btn-ghost btn-sm" onclick="resetQuiz('${qCtx}')">↩ Quit</button>
+        <button class="btn btn-sky btn-sm" id="nxtBtn" onclick="nextQ('${areaId}')" style="display:none">Agla ▶</button>
+      </div>
+    </div>`;
+  speakWord(q.q);
+}
+
+function pick(idx, areaId){
+  const q=quizData[qIdx];
+  document.querySelectorAll('.opt-btn').forEach(b=>b.disabled=true);
+  if(idx===q.ans){
+    document.getElementById('o'+idx).classList.add('correct');
+    qScore++;
+    document.getElementById('qFb').innerHTML=`<div class="q-fb fb-ok">🎉 Sahi! ${q.explain}</div>`;
+    speakWord('Sahi jawab! Shabash!');
+  } else {
+    document.getElementById('o'+idx).classList.add('wrong');
+    document.getElementById('o'+q.ans).classList.add('correct');
+    document.getElementById('qFb').innerHTML=`<div class="q-fb fb-no">❌ Galat. Sahi: ${q.opts[q.ans]}. ${q.explain}</div>`;
+    speakWord('Galat. '+q.opts[q.ans]+' sahi tha.');
+  }
+  const nb=document.getElementById('nxtBtn'); if(nb) nb.style.display='inline-flex';
+}
+
+function nextQ(areaId){ qIdx++; renderQ(areaId); }
+
+function resetQuiz(ctx){
+  quizData=[];qIdx=0;qScore=0;
+  const areaId=ctx==='story'?'storyQuizArea':'pdfQuizArea';
+  const startId=ctx==='story'?'storyQuizStart':'pdfQuizStart';
+  document.getElementById(areaId).style.display='none';
+  document.getElementById(startId).style.display='block';
+}
+
+function showResult(areaId){
+  const pct=Math.round(qScore/quizData.length*100);
+  const e=pct===100?'🏆':pct>=80?'🌟':pct>=60?'👍':'💪';
+  const msg=pct===100?'Perfect! Tum champion ho!':pct>=80?'Bahut achha!':pct>=60?'Theek hai! Practice karo!':'Dobara padhke try karo!';
+  const stars='⭐'.repeat(Math.round(pct/20))+'☆'.repeat(5-Math.round(pct/20));
+  document.getElementById(areaId).innerHTML=`
+    <div class="result-card">
+      <span class="result-emoji">${e}</span>
+      <div class="result-title">${msg}</div>
+      <div class="result-score">${qScore}/${quizData.length} sahi</div>
+      <div style="font-size:24px;margin:8px 0">${stars}</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px">
+        <button class="btn btn-mango btn-sm" onclick="startQuiz('${qType}','${qCtx}')">🔄 Dobara</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetQuiz('${qCtx}')">↩ Menu</button>
+      </div>
+    </div>`;
+  speakWord(msg);
+}
+
+/* ══ VOICE QUIZ ══ */
+function startVoice(){
+  if(!SpeechRec){ toast('⚠️ Voice support nahi'); return; }
+  const btn=document.getElementById('micBtn');
+  const box=document.getElementById('voiceBox');
+  if(recog){ try{recog.stop();}catch(e){} recog=null; return; }
+  try {
+    recog=new SpeechRec();
+    recog.lang=curLang==='hi'?'hi-IN':'en-US';
+    recog.interimResults=true;
+    if(btn) btn.className='mic-btn mic-on';
+    if(box) box.textContent='🎤 Sun raha hoon...';
+    recog.onresult=e=>{
+      const t=Array.from(e.results).map(r=>r[0].transcript).join('');
+      if(box) box.textContent=t;
+      if(e.results[e.results.length-1].isFinal) checkVoice(t);
+    };
+    recog.onend=()=>{ if(btn) btn.className='mic-btn mic-idle'; recog=null; };
+    recog.onerror=()=>{ if(btn) btn.className='mic-btn mic-idle'; if(box) box.textContent='⚠️ Try again.'; recog=null; };
+    recog.start();
+  } catch(e){ toast('⚠️ Mic error'); recog=null; }
+}
+
+function checkVoice(said){
+  const q=quizData[qIdx]; if(!q) return;
+  const s=said.toLowerCase();
+  const areaId=qCtx==='story'?'storyQuizArea':'pdfQuizArea';
+  const match=q.opts.findIndex(o=>s.includes(o.toLowerCase())||o.toLowerCase().split(' ').some(w=>w.length>2&&s.includes(w)));
+  if(match===q.ans) pick(q.ans,areaId);
+  else if(match>=0) pick(match,areaId);
+  else {
+    const box=document.getElementById('voiceBox');
+    if(box) box.textContent=`"${said}" — match nahi. Button tap karo.`;
+  }
+}
+
+/* ══ PROXY API CALL ══ */
+async function callProxy(prompt, maxTok=700){
+  const res=await fetch('/api/claude',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      messages:[{role:'user',content:prompt}],
+      max_tokens:maxTok
+    })
+  });
+  if(!res.ok){
+    let msg='API Error';
+    try{ const e=await res.json(); msg=e.error?.message||JSON.stringify(e); }catch(e){}
+    throw new Error(msg);
+  }
+  const d=await res.json();
+  return d.content?.[0]?.text||'';
+}
+
+/* ══ UI HELPERS ══ */
+function showSpin(id,msg){
+  document.getElementById(id).innerHTML=`<div class="spin-box"><div class="spinner"></div><p>${msg}</p></div>`;
+}
+function showAiResult(text,id){
+  const f=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>');
+  document.getElementById(id).innerHTML=`<p>${f}</p>`;
+}
+function toast(msg){
+  const t=document.getElementById('toast'); if(!t) return;
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+</script>
+</body>
+</html>
